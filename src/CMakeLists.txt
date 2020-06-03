@@ -24,6 +24,8 @@ set(SOURCES
 	librpma.c
 	peer.c
 	rpma_err.c
+	common/librpma_log.c
+	#common/librpma_log_flags.c
 	rpma.c)
 
 add_library(rpma SHARED ${SOURCES})
