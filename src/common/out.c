@@ -398,7 +398,7 @@ out_err(const char *file, int line, const char *func,
 	va_list ap;
 	va_start(ap, fmt);
 	rpma_vlog(RPMA_LOG_ERROR, file, line, func, fmt, ap);
-	//TG out_error(file, line, func, "\n", fmt, ap);
+	// TG out_error(file, line, func, "\n", fmt, ap);
 
 	va_end(ap);
 }

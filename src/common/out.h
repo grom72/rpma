@@ -12,10 +12,11 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-//TG #include "util.h"
+// TG #include "util.h"
 #include "log_internal.h"
 
-/* from "util.h"
+/*
+ * from "util.h"
  *  TG - do we ned this?
  */
 #if defined(__CHECKER__)
