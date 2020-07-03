@@ -15,7 +15,6 @@ add_check_whitespace(src
 
 set(SOURCES
 	common/out.c
-	common/util.c
 	common/log.c
 	conn.c
 	conn_req.c

@@ -9,7 +9,7 @@
 #include <stdarg.h>
 #include <errno.h>
 #include "out.h"
-
+#if 0
 /*
  * util_snprintf -- run snprintf; in case of truncation or a failure
  * return a negative value, or the number of characters printed otherwise.
@@ -62,3 +62,5 @@ util_getexecname(char *path, size_t pathlen)
 
 	return path;
 }
+
+#endif

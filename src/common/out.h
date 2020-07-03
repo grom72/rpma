@@ -12,9 +12,19 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-#include "util.h"
+//TG #include "util.h"
 #include "log_internal.h"
 
+/* from "util.h"
+ *  TG - do we ned this?
+ */
+#if defined(__CHECKER__)
+#define COMPILE_ERROR_ON(cond)
+#define ASSERT_COMPILE_ERROR_ON(cond)
+#else
+#define COMPILE_ERROR_ON(cond) ((void)sizeof(char[(cond) ? -1 : 1]))
+#define ASSERT_COMPILE_ERROR_ON(cond) COMPILE_ERROR_ON(cond)
+#endif
 /*
  * Suppress errors which are after appropriate ASSERT* macro for nondebug
  * builds.
@@ -110,7 +120,7 @@ out_fatal_abort(const char *file, int line, const char *func,
 
 #if 0
 /* produce debug/trace output */
-#define LOG_TG(level, ...) do { \
+#define LOG(level, ...) do { \
 	if (!EVALUATE_DBG_EXPRESSIONS) break;\
 	OUT_LOG(__FILE__, __LINE__, __func__, level, __VA_ARGS__);\
 } while (0)
@@ -141,7 +151,7 @@ out_fatal_abort(const char *file, int line, const char *func,
 /* assert two integer values are equal at runtime */
 #define ASSERTeq_rt(lhs, rhs) do { \
 	if (!EVALUATE_DBG_EXPRESSIONS || ((lhs) == (rhs))) break; \
-	OUT_FATAL(__FILE__, __LINE__, __func__,\
+	OUT_FATAL(__FILE__, __LINE__, __func__, \
 	"assertion failure: %s (0x%llx) == %s (0x%llx)", #lhs,\
 	(unsigned long long)(lhs), #rhs, (unsigned long long)(rhs)); \
 } while (0)
@@ -149,8 +159,8 @@ out_fatal_abort(const char *file, int line, const char *func,
 /* assert two integer values are not equal at runtime */
 #define ASSERTne_rt(lhs, rhs) do { \
 	if (!EVALUATE_DBG_EXPRESSIONS || ((lhs) != (rhs))) break; \
-	OUT_FATAL(__FILE__, __LINE__, __func__,\
-	"assertion failure: %s (0x%llx) != %s (0x%llx)", #lhs,\
+	OUT_FATAL(__FILE__, __LINE__, __func__, \
+	"assertion failure: %s (0x%llx) != %s (0x%llx)", #lhs, \
 	(unsigned long long)(lhs), #rhs, (unsigned long long)(rhs)); \
 } while (0)
 
@@ -189,8 +199,7 @@ out_fatal_abort(const char *file, int line, const char *func,
 		ASSERTne_rt(lhs, rhs);\
 	} while (0)
 
-#define ERR(...)\
-	out_err(__FILE__, __LINE__, __func__, __VA_ARGS__)
+// #define ERR(...) out_err(__FILE__, __LINE__, __func__, __VA_ARGS__)
 
 // TG void out_init(const char *log_prefix, const char *log_level_var,
 // TG		const char *log_file_var, int major_version,
@@ -199,8 +208,11 @@ out_fatal_abort(const char *file, int line, const char *func,
 // TG void out_nonl(int level, const char *fmt, ...) FORMAT_PRINTF(2, 3);
 // TG void out_log(const char *file, int line, const char *func, int level,
 // TG	const char *fmt, ...) FORMAT_PRINTF(5, 6);
-void out_err(const char *file, int line, const char *func,
-	const char *fmt, ...) FORMAT_PRINTF(4, 5);
-void NORETURN out_fatal(const char *file, int line, const char *func,
-	const char *fmt, ...) FORMAT_PRINTF(4, 5);
+// TG void out_err(const char *file, int line, const char *func,
+// TG	const char *fmt, ...) FORMAT_PRINTF(4, 5);
+void
+__attribute__((noreturn))
+__attribute__((__format__(__printf__, 4, 5)))
+out_fatal(const char *file, int line, const char *func,
+		const char *fmt, ...);
 #endif

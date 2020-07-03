@@ -17,7 +17,7 @@
 
 #include "out.h"
 #include "../valgrind/valgrind_internal.h"
-#include "util.h"
+// TG #include "util.h"
 #include "log_internal.h"
 // TG static const char *Log_prefix;
 // TG static int Log_level;
@@ -387,7 +387,7 @@ out_fatal(const char *file, int line, const char *func,
 
 	abort();
 }
-
+#if 0
 /*
  * out_err -- output an error message
  */
@@ -402,4 +402,4 @@ out_err(const char *file, int line, const char *func,
 
 	va_end(ap);
 }
-
+#endif

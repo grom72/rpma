@@ -38,7 +38,7 @@
 
 #ifndef RPMA_UTIL_H
 #define RPMA_UTIL_H 1
-
+#if 0
 #include <string.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -295,5 +295,5 @@ char *util_concat_str(const char *s1, const char *s2);
 #else
 #define CHECK_FUNC_COMPATIBLE(func1, func2) do {} while (0)
 #endif /* __GNUC__ */
-
+#endif
 #endif /* util.h */
