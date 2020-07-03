@@ -16,6 +16,7 @@
 #include "log_internal.h"
 
 static const char *const rpma_level_names[] = {
+	[RPMA_LOG_FATAL]	= "FATAL",
 	[RPMA_LOG_ERROR]	= "ERROR",
 	[RPMA_LOG_WARN]		= "WARNING",
 	[RPMA_LOG_NOTICE]	= "NOTICE",
