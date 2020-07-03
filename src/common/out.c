@@ -18,46 +18,22 @@
 #include "out.h"
 #include "../valgrind/valgrind_internal.h"
 #include "util.h"
+#include "log_internal.h"
+// TG static const char *Log_prefix;
+// TG static int Log_level;
+// TG static FILE *Out_fp;
+// TG static unsigned Log_alignment;
 
-static const char *Log_prefix;
-static int Log_level;
-static FILE *Out_fp;
-static unsigned Log_alignment;
+// TG #define MAXPRINT 256	/* maximum expected log line for libpmem */
 
-#define MAXPRINT 256	/* maximum expected log line for libpmem */
-
+#if 0
 struct errormsg
 {
 	char msg[MAXPRINT];
 };
+#endif
 
-/*
- * We don't want libpmem to depend on libpthread.  Instead of using pthread
- * API to dynamically allocate thread-specific error message buffer, we put
- * it into TLS.  However, keeping a pretty large static buffer (8K) in TLS
- * may lead to some issues, so the maximum message length is reduced.
- * Fortunately, it looks like the longest error message in libpmem should
- * not be longer than about 90 chars (in case of pmem_check_version()).
- */
-
-static __thread struct errormsg Last_errormsg;
-
-static inline void
-Last_errormsg_key_alloc(void)
-{
-}
-
-static inline void
-Last_errormsg_fini(void)
-{
-}
-
-static inline struct errormsg *
-Last_errormsg_get(void)
-{
-	return &Last_errormsg;
-}
-
+#if 0
 /*
  * out_init -- initialize the log
  *
@@ -68,6 +44,7 @@ out_init(const char *log_prefix, const char *log_level_var,
 		const char *log_file_var, int major_version,
 		int minor_version)
 {
+// TG
 	static int once;
 
 	/* only need to initialize the out module once */
@@ -127,69 +104,52 @@ out_init(const char *log_prefix, const char *log_level_var,
 		setlinebuf(Out_fp);
 
 #ifdef DEBUG
-	static char namepath[PATH_MAX];
-	LOG(1, "pid %d: program: %s", getpid(),
-		util_getexecname(namepath, PATH_MAX));
+// TG	static char namepath[PATH_MAX];
+// TG	LOG(1, "pid %d: program: %s", getpid(),
+// TG		util_getexecname(namepath, PATH_MAX));
 #endif
-	LOG(1, "%s version %d.%d", log_prefix, major_version, minor_version);
+// TG	LOG(1, "%s version %d.%d", log_prefix, major_version, minor_version);
 
-	static __attribute__((used)) const char *version_msg =
-			"src version: " SRCVERSION;
-	LOG(1, "%s", version_msg);
+// TG	static __attribute__((used)) const char *version_msg =
+// TG			"src version: " SRCVERSION;
+// TG	LOG(1, "%s", version_msg);
 #if VG_PMEMCHECK_ENABLED
 	/*
 	 * Attribute "used" to prevent compiler from optimizing out the variable
 	 * when LOG expands to no code (!DEBUG)
 	 */
-	static __attribute__((used)) const char *pmemcheck_msg =
-			"compiled with support for Valgrind pmemcheck";
-	LOG(1, "%s", pmemcheck_msg);
+// TG	static __attribute__((used)) const char *pmemcheck_msg =
+// TG			"compiled with support for Valgrind pmemcheck";
+// TG	LOG(1, "%s", pmemcheck_msg);
 #endif /* VG_PMEMCHECK_ENABLED */
 #if VG_HELGRIND_ENABLED
 	static __attribute__((used)) const char *helgrind_msg =
 			"compiled with support for Valgrind helgrind";
-	LOG(1, "%s", helgrind_msg);
+// TG	LOG(1, "%s", helgrind_msg);
 #endif /* VG_HELGRIND_ENABLED */
 #if VG_MEMCHECK_ENABLED
 	static __attribute__((used)) const char *memcheck_msg =
 			"compiled with support for Valgrind memcheck";
-	LOG(1, "%s", memcheck_msg);
+// TG	LOG(1, "%s", memcheck_msg);
 #endif /* VG_MEMCHECK_ENABLED */
 #if VG_DRD_ENABLED
 	static __attribute__((used)) const char *drd_msg =
 			"compiled with support for Valgrind drd";
-	LOG(1, "%s", drd_msg);
+// TG	LOG(1, "%s", drd_msg);
 #endif /* VG_DRD_ENABLED */
 #if SDS_ENABLED
 	static __attribute__((used)) const char *shutdown_state_msg =
 			"compiled with support for shutdown state";
-	LOG(1, "%s", shutdown_state_msg);
+// TG	LOG(1, "%s", shutdown_state_msg);
 #endif
 #if NDCTL_ENABLED
 	static __attribute__((used)) const char *ndctl_ge_63_msg =
 		"compiled with libndctl 63+";
-	LOG(1, "%s", ndctl_ge_63_msg);
+// TG	LOG(1, "%s", ndctl_ge_63_msg);
 #endif
-
-	Last_errormsg_key_alloc();
 }
-
-/*
- * out_fini -- close the log file
- *
- * This is called to close log file before process stop.
- */
-void
-out_fini(void)
-{
-	if (Out_fp != NULL && Out_fp != stderr) {
-		fclose(Out_fp);
-		Out_fp = stderr;
-	}
-
-	Last_errormsg_fini();
-}
-
+#endif
+#if 0
 /*
  * out_print_func -- default print_func, goes to stderr or Out_fp
  */
@@ -208,39 +168,16 @@ out_print_func(const char *s)
 	VALGRIND_ANNOTATE_IGNORE_WRITES_END();
 #endif
 }
-
+#endif
 /*
  * calling Print(s) calls the current print_func...
  */
-typedef void (*Print_func)(const char *s);
-typedef int (*Vsnprintf_func)(char *str, size_t size, const char *format,
-		va_list ap);
-static Print_func Print = out_print_func;
-static Vsnprintf_func Vsnprintf = vsnprintf;
-
-/*
- * out_set_print_func -- allow override of print_func used by out module
- */
-void
-out_set_print_func(void (*print_func)(const char *s))
-{
-	LOG(3, "print %p", print_func);
-
-	Print = (print_func == NULL) ? out_print_func : print_func;
-}
-
-/*
- * out_set_vsnprintf_func -- allow override of vsnprintf_func used by out module
- */
-void
-out_set_vsnprintf_func(int (*vsnprintf_func)(char *str, size_t size,
-				const char *format, va_list ap))
-{
-	LOG(3, "vsnprintf %p", vsnprintf_func);
-
-	Vsnprintf = (vsnprintf_func == NULL) ? vsnprintf : vsnprintf_func;
-}
-
+// TG typedef void (*Print_func)(const char *s);
+// TG typedef int (*Vsnprintf_func)(char *str, size_t size, const char *format,
+// TG		va_list ap);
+// TG static Print_func Print = out_print_func;
+// TG static Vsnprintf_func Vsnprintf = vsnprintf;
+#if 0
 /*
  * out_snprintf -- (internal) custom snprintf implementation
  */
@@ -257,7 +194,8 @@ out_snprintf(char *str, size_t size, const char *format, ...)
 
 	return (ret);
 }
-
+#endif
+#if 0
 /*
  * out_common -- common output code, all output goes through here
  */
@@ -312,9 +250,12 @@ out_common(const char *file, int line, const char *func, int level,
 	Print(buf);
 
 end:
+
 	errno = oerrno;
 }
+#endif
 
+#if 0
 /*
  * out_error -- common error output code, all error messages go through here
  */
@@ -329,7 +270,6 @@ out_error(const char *file, int line, const char *func,
 	char errstr[UTIL_MAX_ERR_MSG] = "";
 
 	char *errormsg = (char *)out_get_errormsg();
-
 	if (fmt) {
 		if (*fmt == '!') {
 			sep = ": ";
@@ -348,7 +288,6 @@ out_error(const char *file, int line, const char *func,
 		out_snprintf(&errormsg[cc], MAXPRINT - cc, "%s%s",
 				sep, errstr);
 	}
-
 #ifdef DEBUG
 	if (Log_level >= 1) {
 		char buf[MAXPRINT];
@@ -366,10 +305,6 @@ out_error(const char *file, int line, const char *func,
 				goto end;
 			}
 			cc += (unsigned)ret;
-			if (cc < Log_alignment) {
-				memset(buf + cc, ' ', Log_alignment - cc);
-				cc = Log_alignment;
-			}
 		}
 
 		out_snprintf(&buf[cc], MAXPRINT - cc, "%s%s", errormsg,
@@ -382,7 +317,9 @@ out_error(const char *file, int line, const char *func,
 end:
 	errno = oerrno;
 }
+#endif
 
+#if 0
 /*
  * out -- output a line, newline added automatically
  */
@@ -396,7 +333,8 @@ out(const char *fmt, ...)
 
 	va_end(ap);
 }
-
+#endif
+#if 0
 /*
  * out_nonl -- output a line, no newline added automatically
  */
@@ -413,7 +351,8 @@ out_nonl(int level, const char *fmt, ...)
 
 	va_end(ap);
 }
-
+#endif
+#if 0
 /*
  * out_log -- output a log line if Log_level >= level
  */
@@ -431,7 +370,7 @@ out_log(const char *file, int line, const char *func, int level,
 
 	va_end(ap);
 }
-
+#endif
 /*
  * out_fatal -- output a fatal error & die (i.e. assertion failure)
  */
@@ -441,8 +380,8 @@ out_fatal(const char *file, int line, const char *func,
 {
 	va_list ap;
 	va_start(ap, fmt);
-
-	out_common(file, line, func, 1, "\n", fmt, ap);
+	rpma_vlog(RPMA_LOG_ERROR, file, line, func, fmt, ap);
+	// TG out_common(file, line, func, 1, "\n", fmt, ap);
 
 	va_end(ap);
 
@@ -458,18 +397,9 @@ out_err(const char *file, int line, const char *func,
 {
 	va_list ap;
 	va_start(ap, fmt);
-
-	out_error(file, line, func, "\n", fmt, ap);
+	rpma_vlog(RPMA_LOG_ERROR, file, line, func, fmt, ap);
+	//TG out_error(file, line, func, "\n", fmt, ap);
 
 	va_end(ap);
 }
 
-/*
- * out_get_errormsg -- get the last error message
- */
-const char *
-out_get_errormsg(void)
-{
-	const struct errormsg *errormsg = Last_errormsg_get();
-	return &errormsg->msg[0];
-}

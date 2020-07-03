@@ -13,6 +13,7 @@
 #include <stdlib.h>
 
 #include "util.h"
+#include "log_internal.h"
 
 /*
  * Suppress errors which are after appropriate ASSERT* macro for nondebug
@@ -35,14 +36,15 @@
 #endif
 
 #ifdef DEBUG
-
+#if 0
 #define OUT_LOG out_log
 #define OUT_NONL out_nonl
+#endif
 #define OUT_FATAL out_fatal
 #define OUT_FATAL_ABORT out_fatal
 
 #else
-
+#if 0
 static __attribute__((always_inline)) inline void
 out_log_discard(const char *file, int line, const char *func, int level,
 		const char *fmt, ...)
@@ -60,7 +62,7 @@ out_nonl_discard(int level, const char *fmt, ...)
 	(void) level;
 	(void) fmt;
 }
-
+#endif
 static __attribute__((always_inline)) OUT_FATAL_DISCARD_NORETURN inline void
 out_fatal_discard(const char *file, int line, const char *func,
 		const char *fmt, ...)
@@ -83,8 +85,8 @@ out_fatal_abort(const char *file, int line, const char *func,
 	abort();
 }
 
-#define OUT_LOG out_log_discard
-#define OUT_NONL out_nonl_discard
+// TG #define OUT_LOG out_log_discard
+// TG #define OUT_NONL out_nonl_discard
 #define OUT_FATAL out_fatal_discard
 #define OUT_FATAL_ABORT out_fatal_abort
 
@@ -106,17 +108,18 @@ out_fatal_abort(const char *file, int line, const char *func,
 		ASSERT_COMPILE_ERROR_ON((lhs) != (rhs));
 #endif
 
+#if 0
 /* produce debug/trace output */
-#define LOG(level, ...) do { \
+#define LOG_TG(level, ...) do { \
 	if (!EVALUATE_DBG_EXPRESSIONS) break;\
 	OUT_LOG(__FILE__, __LINE__, __func__, level, __VA_ARGS__);\
 } while (0)
-
 /* produce debug/trace output without prefix and new line */
 #define LOG_NONL(level, ...) do { \
 	if (!EVALUATE_DBG_EXPRESSIONS) break; \
 	OUT_NONL(level, __VA_ARGS__); \
 } while (0)
+#endif
 
 /* produce output and exit */
 #define FATAL(...)\
@@ -189,22 +192,15 @@ out_fatal_abort(const char *file, int line, const char *func,
 #define ERR(...)\
 	out_err(__FILE__, __LINE__, __func__, __VA_ARGS__)
 
-void out_init(const char *log_prefix, const char *log_level_var,
-		const char *log_file_var, int major_version,
-		int minor_version);
-void out_fini(void);
-void out(const char *fmt, ...) FORMAT_PRINTF(1, 2);
-void out_nonl(int level, const char *fmt, ...) FORMAT_PRINTF(2, 3);
-void out_log(const char *file, int line, const char *func, int level,
-	const char *fmt, ...) FORMAT_PRINTF(5, 6);
+// TG void out_init(const char *log_prefix, const char *log_level_var,
+// TG		const char *log_file_var, int major_version,
+// TG		int minor_version);
+// TG void out(const char *fmt, ...) FORMAT_PRINTF(1, 2);
+// TG void out_nonl(int level, const char *fmt, ...) FORMAT_PRINTF(2, 3);
+// TG void out_log(const char *file, int line, const char *func, int level,
+// TG	const char *fmt, ...) FORMAT_PRINTF(5, 6);
 void out_err(const char *file, int line, const char *func,
 	const char *fmt, ...) FORMAT_PRINTF(4, 5);
 void NORETURN out_fatal(const char *file, int line, const char *func,
 	const char *fmt, ...) FORMAT_PRINTF(4, 5);
-void out_set_print_func(void (*print_func)(const char *s));
-void out_set_vsnprintf_func(int (*vsnprintf_func)(char *str, size_t size,
-	const char *format, va_list ap));
-
-const char *out_get_errormsg(void);
-
 #endif
