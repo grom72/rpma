@@ -225,7 +225,7 @@ rpma_conn_disconnect(struct rpma_conn *conn)
 		return RPMA_E_PROVIDER;
 	}
 
-	RPMA_LOG_NOTICE("Requesting for disconnection");
+	RPMA_LOG_INFO("Requesting for disconnection");
 
 	return 0;
 }

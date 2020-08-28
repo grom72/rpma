@@ -385,7 +385,7 @@ rpma_conn_req_new(struct rpma_peer *peer, const char *addr, const char *port,
 
 	(void) rpma_info_delete(&info);
 
-	RPMA_LOG_NOTICE("Requesting a connection to %s:%s", addr,
+	RPMA_LOG_INFO("Requesting a connection to %s:%s", addr,
 				port);
 
 	return 0;
